@@ -1,6 +1,65 @@
 const pool = require("../../config/db");
 const ROLES = require("../../constants/roles");
 
+exports.createRound = async (
+  driveId,
+  sequenceNumber,
+  type,
+  mode,
+  slotDurationMins,
+  startTime,
+  endTime
+) => {
+
+
+  const driveCheck = await pool.query(
+    "SELECT id FROM drives WHERE id = $1",
+    [driveId]
+  );
+
+  if (driveCheck.rowCount === 0) {
+    throw new Error("Drive not found");
+  }
+
+  try {
+    const result = await pool.query(
+      `
+      INSERT INTO rounds (
+        drive_id,
+        sequence_number,
+        type,
+        mode,
+        slot_duration_mins,
+        start_time,
+        end_time
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      RETURNING *
+      `,
+      [
+        driveId,
+        sequenceNumber,
+        type,
+        mode,
+        slotDurationMins,
+        startTime,
+        endTime
+      ]
+    );
+
+    return result.rows[0];
+
+  } catch (err) {
+
+
+    if (err.code === "23505") {
+      throw new Error("Round sequence already exists for this drive");
+    }
+
+    throw err;
+  }
+};
+
 
 exports.mapPanels = async (roundId, panels) => {
 

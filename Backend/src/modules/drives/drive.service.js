@@ -6,20 +6,18 @@ exports.createDrive = async ({
   description,
   start_time,
   end_time,
-  slot_duration_minutes,
-  panel_count
 }) => {
 
-  if (!title || !start_time || !end_time || !slot_duration_minutes || !panel_count) {
+  if (!title || !start_time || !end_time ) {
     throw new Error('All required fields must be provided')
   }
 
   const result = await pool.query(
     `INSERT INTO drives
-     (title, description, start_time, end_time, slot_duration_minutes, panel_count)
-     VALUES ($1,$2,$3,$4,$5,$6)
+     (title, description, start_time, end_time)
+     VALUES ($1,$2,$3,$4)
      RETURNING *`,
-    [title, description, start_time, end_time, slot_duration_minutes, panel_count]
+    [title, description, start_time, end_time]
   )
 
   return result.rows[0]

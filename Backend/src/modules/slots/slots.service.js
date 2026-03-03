@@ -153,7 +153,35 @@ const client = await pool.connect();
 
         studentIndex++;
       }
-    } 
+    }
+     
+    await client.query(
+      `
+      INSERT INTO interview_slots (
+        round_id,
+        panel_id,
+        student_id,
+        start_time,
+        end_time
+      )
+      SELECT * FROM UNNEST(
+        $1::uuid[],
+        $2::uuid[],
+        $3::uuid[],
+        $4::timestamp[],
+        $5::timestamp[]
+      )
+      `,
+      [roundIds, panelIds, studentIds, startTimes, endTimes]
+    );
+
+    await client.query("COMMIT");
+
+    return {
+      success: true,
+      totalGenerated: studentIds.length
+    };
+ 
 }catch(err){
 
 }

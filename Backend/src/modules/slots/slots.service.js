@@ -99,4 +99,61 @@ exports.generateSlots = async (roundId, force = false) => {
         "Slots already exist. Regenerate with ?force=true to overwrite."
     };
   }
-}  
+} 
+
+const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    if (force) {
+      await client.query(
+        `DELETE FROM interview_slots WHERE round_id = $1`,
+        [roundId]
+      );
+    }
+
+    const seed = generateSeedFromString(roundId);
+    const shuffledStudents = shuffleWithSeed(students, seed);
+
+    //Round Robin
+    const roundStart = new Date(round.start_time);
+
+    const roundIds = [];
+    const panelIds = [];
+    const studentIds = [];
+    const startTimes = [];
+    const endTimes = [];
+
+    let studentIndex = 0;
+
+    for (let slotIndex = 0; slotIndex < slotsPerPanel; slotIndex++) {
+
+      for (let panelIndex = 0; panelIndex < panels.length; panelIndex++) {
+
+        if (studentIndex >= shuffledStudents.length) break;
+
+        const panel = panels[panelIndex];
+
+        const slotStart = new Date(
+          roundStart.getTime() +
+          slotIndex * round.slot_duration_mins * 60 * 1000
+        );
+
+        const slotEnd = new Date(
+          slotStart.getTime() +
+          round.slot_duration_mins * 60 * 1000
+        );
+
+        roundIds.push(roundId);
+        panelIds.push(panel.id);
+        studentIds.push(shuffledStudents[studentIndex]);
+        startTimes.push(slotStart);
+        endTimes.push(slotEnd);
+
+        studentIndex++;
+      }
+    } 
+}catch(err){
+
+}

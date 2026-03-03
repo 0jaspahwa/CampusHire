@@ -1,4 +1,34 @@
 const pool = require("../../config/db");
+
+function generateSeedFromString(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash);
+}
+
+function seededRandom(seed) {
+  let value = seed % 2147483647;
+  return function () {
+    value = (value * 16807) % 2147483647;
+    return (value - 1) / 2147483646;
+  };
+}
+
+function shuffleWithSeed(array, seed) {
+  const random = seededRandom(seed);
+  const arr = [...array];
+
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+
+  return arr;
+}
+
 exports.generateSlots = async (roundId, force = false) => {
 
   const roundRes = await pool.query(

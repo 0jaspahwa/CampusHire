@@ -98,8 +98,7 @@ exports.generateSlots = async (roundId, force = false) => {
       message:
         "Slots already exist. Regenerate with ?force=true to overwrite."
     };
-  }
-} 
+  } 
 
 const client = await pool.connect();
 
@@ -125,13 +124,10 @@ const client = await pool.connect();
     const startTimes = [];
     const endTimes = [];
 
-    let studentIndex = 0;
-
-    for (let slotIndex = 0; slotIndex < slotsPerPanel; slotIndex++) {
-
-      for (let panelIndex = 0; panelIndex < panels.length; panelIndex++) {
-
-        if (studentIndex >= shuffledStudents.length) break;
+    for (let i = 0; i < shuffledStudents.length; i++) {
+        
+        const panelIndex = i % panels.length;
+        const slotIndex = Math.floor(i / panels.length);
 
         const panel = panels[panelIndex];
 
@@ -147,12 +143,12 @@ const client = await pool.connect();
 
         roundIds.push(roundId);
         panelIds.push(panel.id);
-        studentIds.push(shuffledStudents[studentIndex]);
+        studentIds.push(shuffledStudents[i]);
         startTimes.push(slotStart);
         endTimes.push(slotEnd);
 
-        studentIndex++;
-      }
+        
+      
     }
      
     await client.query(
@@ -182,6 +178,10 @@ const client = await pool.connect();
       totalGenerated: studentIds.length
     };
  
-}catch(err){
-
-}
+    }catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
+    } finally {
+        client.release();
+    }
+};  

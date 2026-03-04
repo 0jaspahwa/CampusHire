@@ -6,12 +6,6 @@ const authMiddleware = require("../../middleware/auth.middleware");
 const permissionMiddleware = require("../../middleware/permission.middleware");
 const PERMISSIONS = require("../../constants/permissions");
 
-router.post(
-  "/drives/:driveId/rounds",
-  authMiddleware,
-  permissionMiddleware(PERMISSIONS.CREATE_ROUND),
-  roundController.createRound
-);
 
 
 router.post(

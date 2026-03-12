@@ -26,3 +26,44 @@ exports.getUpcomingSlots = async(studentId) =>{
   
   return result.rows;
 }
+
+exports.getLiveSlot = async (studentId) => {
+  const client = await pool.connect();
+
+  try {
+    const now = new Date();
+
+    const { rows } = await client.query(
+      `
+      SELECT *
+      FROM interview_slots
+      WHERE student_id = $1
+      AND status IN ('SCHEDULED', 'IN_PROGRESS')
+      ORDER BY start_time
+      LIMIT 1
+      `,
+      [studentId]
+    );
+
+    if (rows.length === 0) {
+      return {
+        server_time: now,
+        slot: null,
+        poll_interval_ms: 120000
+      };
+    }
+
+    const slot = rows[0];
+
+    return {
+      server_time: now,
+      slot
+    };
+
+  } catch (error) {
+    console.error("Error fetching live slot:", error);
+    throw error;
+  } finally {
+    client.release();
+  }
+};

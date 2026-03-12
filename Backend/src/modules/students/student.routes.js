@@ -13,4 +13,9 @@ router.get(
   studentController.getMyUpcomingSlots
 );
 
+router.get(
+  "/me/slots/liveSlot",authMiddleware,
+  studentController.getliveSlot
+);
+
 module.exports = router;

@@ -10,6 +10,16 @@ exports.getMyUpcomingSlots = async(req, res, next) => {
             slots
         });
     }catch(err){
+        next(err); 
+    }
+};
+
+exports.getliveSlot = async(req,res,next) => {
+    try{
+        const studentId = req.user.id;
+        const result = await studentService.getLiveSlot(studentId);
+        res.json(result);
+    } catch(err){
         next(err);
     }
 };

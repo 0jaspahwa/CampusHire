@@ -27,6 +27,7 @@ exports.getUpcomingSlots = async(studentId) =>{
   return result.rows;
 }
 
+
 exports.getLiveSlot = async (studentId) => {
   const client = await pool.connect();
 
@@ -35,29 +36,98 @@ exports.getLiveSlot = async (studentId) => {
 
     const { rows } = await client.query(
       `
-      SELECT *
-      FROM interview_slots
-      WHERE student_id = $1
-      AND status IN ('SCHEDULED', 'IN_PROGRESS')
-      ORDER BY start_time
+      SELECT
+      s.id,
+      s.panel_id,
+      s.start_time,
+      s.end_time,
+      s.status,
+      r.sequence_number,
+      r.type AS round_type,
+      d.title AS drive_title,
+      COUNT(*) FILTER (
+        WHERE s2.start_time < s.start_time
+        AND s2.status IN ('SCHEDULED','IN_PROGRESS')
+      ) AS queue_position
+      FROM interview_slots s
+      JOIN rounds r ON s.round_id = r.id
+      JOIN drives d ON r.drive_id = d.id
+      LEFT JOIN interview_slots s2
+        ON s2.panel_id = s.panel_id
+      WHERE s.student_id = $1
+      AND s.status IN ('SCHEDULED', 'IN_PROGRESS')
+      GROUP BY
+      s.id, s.panel_id, s.start_time, s.end_time, s.status,
+      r.sequence_number, r.type, d.title
+      ORDER BY s.start_time
       LIMIT 1
       `,
       [studentId]
     );
-
+    
     if (rows.length === 0) {
-      return {
-        server_time: now,
-        slot: null,
-        poll_interval_ms: 120000
-      };
+      return { server_time: now, slot: null, poll_interval_ms: 120000 };
     }
 
     const slot = rows[0];
 
+    const queuePosition = Number(slot.queue_position);
+
+    const startTime = new Date(slot.start_time);
+    const endTime = new Date(slot.end_time);
+
+    let liveStatus;
+
+    if (slot.status === 'IN_PROGRESS') {
+      liveStatus = 'LIVE';
+    } else if (now < startTime) {
+      liveStatus = 'UPCOMING';
+    } else if (now >= startTime && now <= endTime) {
+      liveStatus = 'LIVE';
+    } else {
+      liveStatus = 'MISSED';
+    }
+
+
+    let pollInterval = 60000; // default
+
+    if (liveStatus === 'LIVE') {
+      pollInterval = 5000;
+    }
+    else if(liveStatus === 'MISSED'){
+      pollInterval = 0;
+    }
+    else if (queuePosition === 1) {
+      pollInterval = 8000; // next student
+    }
+    else if (queuePosition <= 3) {
+      pollInterval = 20000;
+    }
+    else {
+      pollInterval = 60000;
+    }
+
+  const slotDuration = endTime.getTime() - startTime.getTime();
+
+  const estimatedStart = new Date(
+    startTime.getTime() + queuePosition * slotDuration
+  );
+
     return {
       server_time: now,
-      slot
+      slot: {
+        id: slot.id,
+        start_time: slot.start_time,
+        end_time: slot.end_time,
+        status: slot.status,
+        live_status: liveStatus,
+        queue_position: queuePosition,
+        drive_title: slot.drive_title,
+        round_type: slot.round_type,
+        sequence_number: slot.sequence_number,
+        estimated_start_time: estimatedStart
+      },
+      poll_interval_ms: pollInterval
     };
 
   } catch (error) {

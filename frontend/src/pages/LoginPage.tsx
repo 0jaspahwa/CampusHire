@@ -2,13 +2,17 @@ import React, { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 
 import { loginUser } from '../services/authService';
+import { BiSolidFastForwardCircle } from 'react-icons/bi';
 
 export default function LoginPage() {
   const [role, setRole] = useState<'Student' | 'Recruiter' | 'Admin'>('Student');
   const [showPassword, setShowPassword] = useState(false);
+  const [isLogin, setIsLogin] = useState(true);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  
 
 const handleLogin = async (e: React.FormEvent)=>{
     e.preventDefault();
@@ -50,15 +54,16 @@ const handleLogin = async (e: React.FormEvent)=>{
         {/* Headings */}
         <div className="text-center mb-8">
           <h1 className="font-serif text-3xl md:text-[32px] text-white mb-3 tracking-tight">
-            Welcome to CampusHire
+            {isLogin ? 'Welcome to CampusHire' : 'Create Student Account'}
           </h1>
           <p className="text-[#888888] text-sm">
-            Sign in to your account
+            {isLogin ? 'Sign in to your account' : 'Enter your details to get started'}
           </p>
         </div>
 
         {/* Role Selector */}
-        <div className="flex p-1 bg-[#141414] rounded-full mb-8 border border-white/[0.04]">
+        {isLogin && (
+          <div className="flex p-1 bg-[#141414] rounded-full mb-8 border border-white/[0.04]">
           {['Student', 'Recruiter', 'Admin'].map((r) => (
             <button
               key={r}
@@ -73,9 +78,19 @@ const handleLogin = async (e: React.FormEvent)=>{
             </button>
           ))}
         </div>
+        )}
 
         {/* Form */}
         <form className="space-y-4" onSubmit={handleLogin}>
+          {!isLogin && (
+            <div>
+              <input
+                type="text"
+                placeholder="Full Name"
+                className="w-full bg-[#141414] border border-white/[0.04] rounded-xl px-4 py-3.5 text-white placeholder:text-[#666666] focus:outline-none focus:ring-1 focus:ring-white/20 transition-all text-sm"
+              />
+            </div>
+          )}
           <div>
             <input
               type="email"
@@ -115,9 +130,43 @@ const handleLogin = async (e: React.FormEvent)=>{
             type="submit"
             className="w-full bg-white text-black font-semibold rounded-full py-3.5 mt-2 hover:bg-gray-100 transition-colors active:scale-[0.98] text-sm"
           >
-            Continue
+            {isLogin ? 'Continue' : 'Create Account'}
           </button>
         </form>
+
+        {/* Toggle Login/Signup */}
+        <div className="mt-8 text-center text-sm text-[#666666] min-h-[20px]">
+          {isLogin ? (
+            role === 'Student' ? (
+              <>
+                Don't have an account?{' '}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsLogin(false);
+                    setRole('Student');
+                  }}
+                  className="text-white hover:underline transition-all font-medium"
+                >
+                  Sign up
+                </button>
+              </>
+            ) : (
+              <span>Registration for {role}s is by invitation only.</span>
+            )
+          ) : (
+            <>
+              Already have an account?{' '}
+              <button
+                type="button"
+                onClick={() => setIsLogin(true)}
+                className="text-white hover:underline transition-all font-medium"
+              >
+                Sign in
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

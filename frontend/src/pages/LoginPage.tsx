@@ -7,6 +7,25 @@ export default function LoginPage() {
   const [role, setRole] = useState<'Student' | 'Recruiter' | 'Admin'>('Student');
   const [showPassword, setShowPassword] = useState(false);
 
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+const handleLogin = async (e: React.FormEvent)=>{
+    e.preventDefault();
+
+    try{
+        const data = await loginUser({
+            email,
+            password,
+            role,
+        });
+        localStorage.setItem("token",data.token);
+        console.log("Login success", data);
+    } catch(error){
+        console.error("Login failed", error);
+    }
+};
+
   return (
     <div className="min-h-screen bg-black flex items-center justify-center p-4 font-sans text-white relative overflow-hidden selection:bg-white/20">
 
@@ -56,11 +75,13 @@ export default function LoginPage() {
         </div>
 
         {/* Form */}
-        <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+        <form className="space-y-4" onSubmit={handleLogin}>
           <div>
             <input
               type="email"
               placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full bg-[#141414] border border-white/[0.04] rounded-xl px-4 py-3.5 text-white placeholder:text-[#666666] focus:outline-none focus:ring-1 focus:ring-white/20 transition-all text-sm"
             />
           </div>
@@ -68,6 +89,8 @@ export default function LoginPage() {
             <input
               type={showPassword ? "text" : "password"}
               placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               className="w-full bg-[#141414] border border-white/[0.04] rounded-xl px-4 py-3.5 text-white placeholder:text-[#666666] focus:outline-none focus:ring-1 focus:ring-white/20 transition-all text-sm"
             />
             <button

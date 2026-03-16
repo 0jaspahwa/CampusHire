@@ -2,15 +2,17 @@ import React, { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 
 import { loginUser } from '../services/authService';
+import { signupUser } from '../services/authService';
 import { BiSolidFastForwardCircle } from 'react-icons/bi';
 
 export default function LoginPage() {
-  const [role, setRole] = useState<'Student' | 'Recruiter' | 'Admin'>('Student');
+  const [role, setRole] = useState<'STUDENT' | 'Recruiter' | 'Admin'>('STUDENT');
   const [showPassword, setShowPassword] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
 
   
 
@@ -29,6 +31,24 @@ const handleLogin = async (e: React.FormEvent)=>{
         console.error("Login failed", error);
     }
 };
+
+const handleSignup = async (e: React.FormEvent)=>{
+  e.preventDefault();
+  try{
+    const res = await signupUser({
+      name,
+      email,
+      password,
+      role,
+    });
+    console.log("User Created:", res.data);
+    alert("Account created successfully");
+
+  }catch(err){
+    console.error(err);
+    alert("Signup failed");
+  }
+}
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center p-4 font-sans text-white relative overflow-hidden selection:bg-white/20">
@@ -80,13 +100,18 @@ const handleLogin = async (e: React.FormEvent)=>{
         </div>
         )}
 
-        {/* Form */}
-        <form className="space-y-4" onSubmit={handleLogin}>
+        {/* Login Form */}
+        <form 
+          className="space-y-4" 
+          onSubmit={isLogin ? handleLogin : handleSignup }
+        >
           {!isLogin && (
             <div>
               <input
                 type="text"
                 placeholder="Full Name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 className="w-full bg-[#141414] border border-white/[0.04] rounded-xl px-4 py-3.5 text-white placeholder:text-[#666666] focus:outline-none focus:ring-1 focus:ring-white/20 transition-all text-sm"
               />
             </div>
@@ -117,6 +142,7 @@ const handleLogin = async (e: React.FormEvent)=>{
             </button>
           </div>
 
+          
           {/* Terms */}
           <div className="pt-4 pb-2 text-center">
             <p className="text-[#666666] text-xs leading-relaxed">
@@ -137,14 +163,14 @@ const handleLogin = async (e: React.FormEvent)=>{
         {/* Toggle Login/Signup */}
         <div className="mt-8 text-center text-sm text-[#666666] min-h-[20px]">
           {isLogin ? (
-            role === 'Student' ? (
+            role === 'STUDENT' ? (
               <>
                 Don't have an account?{' '}
                 <button
                   type="button"
                   onClick={() => {
                     setIsLogin(false);
-                    setRole('Student');
+                    setRole('STUDENT');
                   }}
                   className="text-white hover:underline transition-all font-medium"
                 >

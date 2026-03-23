@@ -38,3 +38,17 @@ exports.getDrives = async(req, res) =>{
         });
     }
 };
+
+exports.getMyResults = async (req, res, next) => {
+  try {
+    const studentId = req.user.id; 
+
+    const results = await studentService.getMyResults(studentId);
+    
+    res.status(200).json(results);
+  } catch (err) {
+    console.error("Controller Error:", err);
+    next(err);
+  }
+};
+

@@ -25,4 +25,6 @@ router.get(
   studentController.getDrives
 );
 
+router.get("/me/results", authMiddleware, studentController.getMyResults);
+
 module.exports = router;

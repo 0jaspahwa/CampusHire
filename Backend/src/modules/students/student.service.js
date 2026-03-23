@@ -155,3 +155,34 @@ exports.getAvailableDrives = async() =>{
   );
   return result.rows;
 }
+
+exports.getMyResults = async (studentId) => {
+  const query = `
+    SELECT 
+      d.title as company_name,
+      r.type as round_type,
+      r.sequence_number,
+      s.start_time,
+      s.status as slot_status,
+      e.decision,
+      e.technical_skill,
+      e.communication,
+      e.problem_solving,
+      e.core_concepts
+    FROM interview_slots s
+    JOIN round_panels p ON s.panel_id = p.id
+    JOIN rounds r ON p.round_id = r.id
+    JOIN drives d ON r.drive_id = d.id
+    LEFT JOIN evaluations e ON s.id = e.slot_id
+    WHERE s.student_id = $1
+    ORDER BY d.start_time DESC, r.sequence_number ASC;
+  `;
+
+  try {
+    const result = await pool.query(query, [studentId]);
+    return result.rows;
+  } catch (err) {
+    console.error("Database Error in getMyResults:", err);
+    throw err;
+  }
+};

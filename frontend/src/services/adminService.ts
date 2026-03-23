@@ -1,4 +1,4 @@
-// src/services/adminService.ts
+
 import api from "./api";
 
 export interface CreateDrivePayload {
@@ -30,12 +30,10 @@ export interface CreateRoundPayload {
 
 export const createRound = async (driveId: string, roundData: CreateRoundPayload) => {
   try {
-    // Assuming your Express route looks like POST /api/admin/drives/:driveId/rounds
     const res = await api.post(`/api/drives/${driveId}/rounds`, roundData);
     return res.data;
   } catch (error: any) {
     console.error("Failed to create round:", error);
-    // Extract the specific 23505 unique constraint error message if it exists
     throw new Error(error.response?.data?.error || "Failed to create round.");
   }
 };
@@ -47,13 +45,12 @@ export interface Drive {
   description: string;
   start_time: string;
   end_time: string;
-  // If your DB has a status column, add it here. Otherwise, we'll calculate it!
   status?: string; 
 }
 
 export const getDrives = async (): Promise<Drive[]> => {
   try {
-    const res = await api.get('/api/drives'); // Ensure this matches your backend route
+    const res = await api.get('/api/drives'); 
     return res.data;
   } catch (error) {
     console.error("Failed to fetch drives:", error);
@@ -76,13 +73,73 @@ export interface DriveDetails extends Drive {
   rounds: Round[];
 }
 
-// Add this fetch function
 export const getDriveDetails = async (driveId: string): Promise<DriveDetails> => {
   try {
     const res = await api.get(`/api/drives/${driveId}`);
     return res.data;
   } catch (error) {
     console.error("Failed to fetch drive details:", error);
+    throw error;
+  }
+};
+
+
+
+export interface PanelConfig {
+  panelNumber: number;
+  locationOrLink: string;
+  interviewerIds: string[]; 
+}
+
+// 1. Map Panels
+export const mapPanels = async (roundId: string, panels: PanelConfig[]) => {
+  try {
+    const res = await api.post(`/api/rounds/${roundId}/panels`, { panels });
+    return res.data;
+  } catch (error: any) {
+    throw new Error(error.response?.data?.error || "Failed to map panels.");
+  }
+};
+
+// 2. Generate Slots
+export const generateSlots = async (roundId: string, force: boolean = false) => {
+  try {
+    const res = await api.post(`/api/rounds/${roundId}/generate?force=${force}`);
+    return res.data;
+  } catch (error: any) {
+    throw new Error(error.response?.data?.error || "Failed to generate slots.");
+  }
+};
+
+
+export const getInterviewers = async () => {
+  try {
+    const res = await api.get('/api/users/interviewers'); 
+    return res.data;
+  } catch (error) {
+    console.error("Failed to fetch interviewers", error);
+    return [];
+  }
+};
+
+export interface ScheduleSlot {
+  slot_id: string;
+  student_id: string;
+  student_name: string;
+  student_email: string;
+  panel_number: number;
+  location_or_link: string;
+  start_time: string;
+  end_time: string;
+  status: string; 
+}
+
+export const getRoundSchedule = async (roundId: string): Promise<ScheduleSlot[]> => {
+  try {
+    const res = await api.get(`/api/rounds/${roundId}/schedule`);
+    return res.data;
+  } catch (error) {
+    console.error("Failed to fetch schedule", error);
     throw error;
   }
 };

@@ -23,3 +23,18 @@ exports.getliveSlot = async(req,res,next) => {
         next(err);
     }
 };
+
+exports.getDrives = async(req, res) =>{
+    try{
+        const drives = await studentService.getAvailableDrives();
+        res.json({
+            count : drives.length,
+            drives
+        });
+    }catch(err){
+        console.error(err);
+        res.status(500).json({
+            error: "Failed to fetch drives"
+        });
+    }
+};

@@ -137,3 +137,21 @@ exports.getLiveSlot = async (studentId) => {
     client.release();
   }
 };
+
+exports.getAvailableDrives = async() =>{
+  const result = await pool.query(
+    `
+    SELECT
+      id,
+      title,
+      description,
+      start_time,
+      end_time,
+      status
+    FROM DRIVES
+    WHERE status in('CREATED','ACTIVE') 
+    ORDER BY start_time ASC 
+    `
+  );
+  return result.rows;
+}

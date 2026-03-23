@@ -18,4 +18,11 @@ router.get(
   studentController.getliveSlot
 );
 
+router.get(
+  "/me/drives",
+  authMiddleware,
+  permissionMiddleware(PERMISSIONS.VIEW_DRIVES),
+  studentController.getDrives
+);
+
 module.exports = router;

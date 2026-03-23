@@ -21,3 +21,20 @@ exports.login = async(req,res) =>{
         })
     }
 }
+
+
+exports.getMyProfile = async (req, res, next) => {
+  try {
+    const userId = req.user.id; 
+    const profile = await authService.getUserProfile(userId);
+
+    if (!profile) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json(profile);
+
+  } catch (err) {
+    next(err);
+  }
+};

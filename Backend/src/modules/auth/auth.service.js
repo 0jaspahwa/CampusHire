@@ -63,3 +63,16 @@ exports.login = async({email, password}) =>{
     }
   }
 }
+
+exports.getUserProfile = async (userId) => {
+  const result = await pool.query(
+    `SELECT id, name, email, role FROM users WHERE id = $1`,
+    [userId]
+  );
+
+  if (result.rowCount === 0) {
+    return null; 
+  }
+
+  return result.rows[0];
+};
